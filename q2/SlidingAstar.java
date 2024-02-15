@@ -25,7 +25,7 @@ public class SlidingAstar {
             this.parent = null; // no parent
         }
     }
-
+    // variables of a Sliding aStar
     private Board initial; // initial board
     private Board goal; // goal board
     private int size; // board size
@@ -44,20 +44,22 @@ public class SlidingAstar {
 
         openList.addFirst(initial); // add initial board to open list
 
-        while (!openList.isEmpty()) // while open list has more boards
-        {
+        while (!openList.isEmpty())  {// while open list has more boards
+
             int best = selectBest(openList); // select best board
 
             Board board = openList.remove(best); // remove board
 
             closedList.addLast(board); // add board to closed list
 
-            if (goal(board)) // if board is goal
-            {
+            if (goal(board)) { // if board is goal
+            
                 displayPath(board); // display path to goal
                 return; // stop search
-            } else // if board is not goal
-            {
+            } 
+            
+            else { // if board is not goal
+            
                 LinkedList<Board> children = generate(board);// create children
 
                 for (int i = 0; i < children.size(); i++) { // for each child
@@ -79,96 +81,73 @@ public class SlidingAstar {
             }
         }
 
-        System.out.println("no solution"); // no solution if there are
-    } // no boards in open list
+        System.out.println("no solution"); // no solution if there are no more board in open list
+    } 
+
 
     // Method creates children of a board
     private LinkedList<Board> generate(Board board) {
-        int i = 0, j = 0;
-        boolean found = true;
 
-        
-         
-
-        boolean north, south, east, west; 
-        north = i == 0 ? false : true; // has N, S, E, W neighbors
-        south = i == size - 1 ? false : true;
-        east = j == size - 1 ? false : true;
-        west = j == 0 ? false : true;
-
-        LinkedList<Board> children = new LinkedList<Board>();// list of children
-
-        if (north)
-            children.addLast(createChild(board, i, j, 'N')); // add N, S, E, W
-        if (south)
-            children.addLast(createChild(board, i, j, 'S')); // children if
-        if (east)
-            children.addLast(createChild(board, i, j, 'E')); // they exist
-        if (west)
-            children.addLast(createChild(board, i, j, 'W'));
-
-        return children; // return children
+        // creates children linkedlist
+        LinkedList<Board> children = new LinkedList<>();
+    
+        // Iterate over the board to find all possible moves
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                // Check all four directions for possible swaps
+                char[] directions = {'N', 'S', 'E', 'W'};
+                for (char d : directions) {
+                    if (isValidSwap(board, d, i, j)) {
+                        Board child = createChild(board, i, j, d);
+                        if (child != null) { // Ensure the child is valid
+                            children.addLast(child);
+                        }
+                    }
+                }
+            }
+        }
+    
+        return children;
     }
+    
 
     // 
     // given direction
     private Board createChild(Board board, int i, int j, char direction) {
-        Board child = copy(board); // create copy of board
-        char temp = ' ';
-
-        if (direction == 'N' && isValidSwap(board, 'N', i, j))
-        {
-
-            temp = child.array[i][j];
-            child.array[i][j] = child.array[i - 1][j];
-            child.array[i - 1][j] = temp;
-            
-
-        } else if (direction == 'S' && isValidSwap(board, 'S', i, j)) //
-        {
-
-            temp = child.array[i][j];
-            child.array[i][j] = child.array[i + 1][j];
-            child.array[i + 1][j] = temp;
-            displayBoard(board);
-
-        } else if (direction == 'E' && isValidSwap(board, 'E', i, j)) 
-        {
-
-            temp = child.array[i][j];
-            child.array[i][j] = child.array[i][j + 1];
-            child.array[i][j + 1] = temp;
-
-        } else if (direction == 'W' && isValidSwap(board, 'W', i, j)) 
-        {
-            temp = child.array[i][j];
-            child.array[i][j] = child.array[i][j - 1];
-            child.array[i][j - 1] = temp;
-
+        // First, make a deep copy of the board to create a new child
+        Board child = copy(board);
+    
+        // Determine the swap position based on the direction
+        int swapI = i, swapJ = j;
+        switch (direction) {
+            case 'N': swapI = i - 1; break; // Move up
+            case 'S': swapI = i + 1; break; // Move down
+            case 'E': swapJ = j + 1; break; // Move right
+            case 'W': swapJ = j - 1; break; // Move left
         }
-
-        child.gvalue = board.gvalue + 1; // parent path cost plus one
-
-        child.hvalue = heuristic_D(child); // heuristic value of child
-
-        child.fvalue = child.gvalue + child.hvalue; // gvalue plus hvalue
-
-        child.parent = board; // assign parent to child
-
-        return child; // return child
+    
+        // Perform the swap if the move is within bounds
+        if (swapI >= 0 && swapI < size && swapJ >= 0 && swapJ < size) {
+            char temp = child.array[i][j];
+            child.array[i][j] = child.array[swapI][swapJ];
+            child.array[swapI][swapJ] = temp;
+            
+            // After the swap, update the gvalue and parent
+            child.gvalue = board.gvalue + 1; // Increment the path cost by 1
+            child.parent = board; // Set the current board as parent
+            
+            // Recalculate the heuristic value for the child
+            child.hvalue = heuristic_D(child); // Call your heuristic function
+            // Update the fvalue (total cost)
+            child.fvalue = child.gvalue + child.hvalue;
+        }
+    
+        return child;
     }
+    
 
-    // Method computes heuristic value of board based on misplaced values
-    private int heuristic_M(Board board) {
-        int value = 0; // initial heuristic value
 
-        for (int i = 0; i < size; i++) // go thru board and
-            for (int j = 0; j < size; j++) // count misplaced values
-                if (board.array[i][j] != goal.array[i][j])
-                    value += 1;
-
-        return value; // return heuristic value
-    }
+    //HEURISTIC MISMATCH GOES HERE
 
     // Method computes heuristic value of board
     // Heuristic value is the sum of taxi distances of misplaced values
@@ -210,7 +189,7 @@ public class SlidingAstar {
         for (int i = 0; i < list.size(); i++) {
             int value = list.get(i).fvalue;
             if (value < minValue) // updates minimums if
-            { // board with smaller
+            { // board with smaller f value
                 minValue = value; // fvalue is found
                 minIndex = i;
             }
@@ -285,24 +264,34 @@ public class SlidingAstar {
         System.out.println();
     }
 
-    private boolean isValidSwap(Board board, char pos, int i, int j) {
-        // Check for moving upwards
-        if (pos == 'N' && i > 0) { // Ensure we are not on the first row
-            return Character.isDigit(board.array[i][j]) != Character.isDigit(board.array[i - 1][j]);
+    private boolean isValidSwap(Board board, char direction, int i, int j) {
+        int ni = i, nj = j; // new indices after moving in the specified direction
+    
+        // Update indices based on direction
+        switch (direction) {
+            case 'N': ni = i - 1; break; // Move up
+            case 'S': ni = i + 1; break; // Move down
+            case 'E': nj = j + 1; break; // Move right
+            case 'W': nj = j - 1; break; // Move left
         }
-        // Check for moving downwards
-        if (pos == 'S' && i < board.array.length - 1) { // Ensure we are not on the last row
-            return Character.isDigit(board.array[i][j]) != Character.isDigit(board.array[i + 1][j]);
-        }
-        // Check for moving right
-        if (pos == 'E' && j < board.array[i].length - 1) { // Ensure we are not on the last column
-            return Character.isDigit(board.array[i][j]) != Character.isDigit(board.array[i][j + 1]);
-        }
-        // Check for moving left
-        if (pos == 'W' && j > 0) { // Ensure we are not on the first column
-            return Character.isDigit(board.array[i][j]) != Character.isDigit(board.array[i][j - 1]);
-        }
+    
+        // Check bounderies
+        if (ni < 0 || nj < 0 || ni >= size || nj >= size) return false;
+    
+        char current = board.array[i][j];
+        char next = board.array[ni][nj];
+    
+        // Check for valid swap
+        // Swap between number and 'R' or 'G'
+        if (Character.isDigit(current) && (next == 'R' || next == 'G')) return true;
+        if (Character.isDigit(next) && (current == 'R' || current == 'G')) return true;
+    
+        // Swap between 'R' and 'G'
+        if ((current == 'R' && next == 'G') || (current == 'G' && next == 'R')) return true;
+    
+        // If none of the valid return false
         return false;
     }
+    
     
 }
