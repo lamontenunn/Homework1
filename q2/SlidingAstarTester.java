@@ -6,7 +6,7 @@ public class SlidingAstarTester {
     // main method for testing
     public static void main(String[] args) {
         try {
-            File file = new File("file3.txt");
+            File file = new File("file4.txt");
             Scanner in = new Scanner(file);
             int size = in.nextInt();
 
@@ -30,7 +30,7 @@ public class SlidingAstarTester {
             ArrayList<Integer> nums = new ArrayList<>();
             int reds = 0;
             int greens = 0;
-            // Assuming the goal is to have a sorted list of numbers followed by 'R' and 'G'
+            // goal is to have a sorted list of numbers followed by 'R' and 'G'
             for (int i = 0; i < size; i++) {
                 for (int j = 0; j < size; j++) {
                     if (Character.isDigit(initial[i][j])) {
@@ -46,8 +46,8 @@ public class SlidingAstarTester {
             // Sort the list of numbers
             Collections.sort(nums);
 
-            // Filling goal board
-            int counter = 0; // Reset counter for nums array
+            // fill the goal bord from array and count of reds and greens
+            int counter = 0; // set counter
             for (int i = 0; i < size; i++) {
                 for (int j = 0; j < size; j++) {
                     if (counter < nums.size()) {
@@ -66,19 +66,13 @@ public class SlidingAstarTester {
                 }
             }
 
-            /*
-             * // Print out the goal board
-             * for (int i = 0; i < size; i++) {
-             * for (int j = 0; j < size; j++) {
-             * System.out.print(goal[i][j] + " ");
-             * }
-             * System.out.println(); // New line for each row
-             * }
-             */
 
+            // create slidingAstar object given initial board, goal board and size
             SlidingAstar s = new SlidingAstar(initial, goal, size);
             s.solve();
 
+
+        // catch exception 
         } catch (FileNotFoundException e) {
             System.out.println("File not found.");
         }
