@@ -13,7 +13,7 @@ public class AlphaBeta
     private final char PLAYER = '0';               //player
     private final int MIN = 0;                     //min level
     private final int MAX = 1;                     //max level
-    private final int LIMIT = 6;                   //depth limit
+    private final int DEPTH = 6;                   //depth limit
 
     //Board class (inner class)
     private class Board
@@ -51,18 +51,32 @@ public class AlphaBeta
     //Method plays game
     public void play()
     {
-        while (true)                               //computer and player take turns
+    
+        try {
+        while (true)                                   //computer and player take turns
         {
             board = playerMove(board);             //player makes a move
 
+
+            // Calculate and display scores after player move
+            int playerScore = evaluateScore(PLAYER);
+            int computerScore = evaluateScore(COMPUTER);
+            writer.println("Player Score: " + playerScore + ", Computer Score: " + computerScore);
+            System.out.println("Player Score: " + playerScore + ", Computer Score: " + computerScore);
+
+
             if (playerWin(board))                  //if player wins then game is over
             {
+                
+                writer.println("Player wins");
                 System.out.println("Player wins");
+
                 break;
             }
 
             if (draw(board))                       //if draw then game is over
             {
+                writer.println("Draw");
                 System.out.println("Draw");
                 break;
             }
@@ -70,31 +84,52 @@ public class AlphaBeta
             board = computerMove(board);           //computer makes a move
             
 
+
+            // Calculate and display scores after computer move
+            playerScore = evaluateScore(PLAYER);
+            computerScore = evaluateScore(COMPUTER);
+            writer.println("Player Score: " + playerScore + ", Computer Score: " + computerScore);
+            System.out.println("Player Score: " + playerScore + ", Computer Score: " + computerScore);
+
             if (computerWin(board))                //if computer wins then game is over
             {                      
+                
+                writer.println("Computer wins");
                 System.out.println("Computer wins");
                 break;
             }
 
             if (draw(board))                       //if draw then game is over
             {
+                writer.println("Draw");
                 System.out.println("Draw");
                 break;
             }
+            }
         }
+        finally {
+            if (writer != null) {
+                writer.flush(); // Ensure all data is written out
+                writer.close(); // Close the writer to release resources
+            }
     }
+}
 
     //Method lets the player make a move
     private Board playerMove(Board board)
     {
+
+        writer.println();
+        System.out.println();
+        writer.println("Player move: ");
         System.out.print("Player move: ");         //prompt player
      
-        try (Scanner scanner = new Scanner(System.in)) {
+            Scanner scanner = new Scanner(System.in);
             int i = scanner.nextInt();
             int j = scanner.nextInt();
 
             board.array[i][j] = PLAYER;                //place player symbol
-        }
+        
         displayBoard(board);                       //diplay board
 
         return board;                              //return updated board
@@ -110,7 +145,7 @@ public class AlphaBeta
                                                    //find the child with
         for (int i = 0; i < children.size(); i++)  //largest minmax value
         {
-            int currentValue = minmax(children.get(i), MIN, 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
+            int currentValue = minmax(children.get(i), MIN, DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE);
             if (currentValue > maxValue)
             {
                 maxIndex = i;
@@ -125,6 +160,7 @@ public class AlphaBeta
             if (board.array[i][j] != result.array[i][j])
             {
                 // computer move coordinates
+                writer.println("Computer move: " + i + " " + j);
                 System.out.println("Computer move: " + i + " " + j); 
                 break; 
             }
@@ -141,8 +177,12 @@ public class AlphaBeta
     //Method computes minmax value of a board
     private int minmax(Board board, int level, int depth, int alpha, int beta)
     {
-        if (computerWin(board) || playerWin(board) || draw(board) || depth >= LIMIT)
-            return evaluate(board);                //if board is terminal or depth limit is reached
+        if (computerWin(board) || playerWin(board) || draw(board) || depth >= DEPTH)
+            return evaluateScore(PLAYER);                //if board is terminal or depth limit is reached
+            
+
+
+
         else                                       //evaluate board
         {
             if (level == MAX)                      //if board is at max level     
@@ -334,6 +374,7 @@ private void displayBoard(Board board)
 
         
         System.out.println(); // Move to the next line after printing a row
+        writer.print("\n");
         if (i < size - 1) {
 
             for (int j = 0; j < size; j++) {
@@ -345,7 +386,9 @@ private void displayBoard(Board board)
                     System.out.print("--"); 
                 }
             }
-            System.out.println(); 
+            writer.print("\n");
+            System.out.println();
+             
         }
     }
 }
@@ -354,19 +397,30 @@ private void displayBoard(Board board)
 
 
     //Method evaluates a board
-    private int evaluate(Board board)
-    {
-        if (computerWin(board))                    //utility is 4*size if computer wins
-            return 4*size;
-        else if (playerWin(board))                 //utility is -4*size if player wins
-            return -4*size;
-        else if (draw(board))                      //utility is 3*size if draw
-            return 3*size;
-        else                            
-            return count(board, COMPUTER) - count(board, PLAYER);
-    }                                              //utility is difference between computer 
+    public int evaluateScore(char symbol) {
+        int p = 0; // 2 consecutive pieces
+        int q = 0; // 3 consecutive pieces
+        // Horizontal and vertical
+        for (int i = 0; i < size; i++) {
+            p += countConsecutive(i, -1, symbol, 2);
+            q += countConsecutive(i, -1, symbol, 3);
+            p += countConsecutive(-1, i, symbol, 2);
+            q += countConsecutive(-1, i, symbol, 3);
+        }
+        // Diagonal (left and right)
+        p += countDiagonalConsecutive(symbol, 2, true);
+        q += countDiagonalConsecutive(symbol, 3, true);
+        p += countDiagonalConsecutive(symbol, 2, false);
+        q += countDiagonalConsecutive(symbol, 3, false);
+
+        return 2 * p + 3 * q;
+    }
+
+                            //utility is difference between computer 
                                                    //and player winnings if depth limit
                                                    //is reached
+                                                   
+
                                                    
     //Method counts possible ways a symbol can win
     private int count(Board board, char symbol)
@@ -429,4 +483,75 @@ private void displayBoard(Board board)
 
         return true;
     }
+
+
+
+    private int countConsecutive(int row, int col, char symbol, int length) {
+        int count = 0;
+        int consecutive = 0;
+        // Horizontal check (if row is not -1)
+        if (row != -1) {
+            for (int j = 0; j < size; j++) {
+                if (board.array[row][j] == symbol) {
+                    consecutive++;
+                    if (consecutive == length) {
+                        count++;
+                        if (length == 3) { // Avoid double-counting for sequences of 3
+                            j++;
+                        }
+                    }
+                } else {
+                    consecutive = 0;
+                }
+            }
+        }
+        // Reset for vertical check
+        consecutive = 0;
+        // Vertical check (if col is not -1)
+        if (col != -1) {
+            for (int i = 0; i < size; i++) {
+                if (board.array[i][col] == symbol) {
+                    consecutive++;
+                    if (consecutive == length) {
+                        count++;
+                        if (length == 3) { // Avoid double-counting for sequences of 3
+                            i++;
+                        }
+                    }
+                } else {
+                    consecutive = 0;
+                }
+            }
+        }
+        return count;
+    }
+
+    // Count consecutive pieces diagonally
+    private int countDiagonalConsecutive(char symbol, int length, boolean leftDiagonal) {
+        int count = 0;
+        for (int i = 0; i < size; i++) {
+            int consecutive = 0;
+            for (int j = 0; j < size; j++) {
+                int x = i + (leftDiagonal ? j : -j);
+                int y = j;
+                if (x >= 0 && x < size && y >= 0 && y < size) {
+                    if (board.array[x][y] == symbol) {
+                        consecutive++;
+                        if (consecutive == length) {
+                            count++;
+                            break; // Move to next diagonal after finding a sequence
+                        }
+                    } else {
+                        consecutive = 0;
+                    }
+                }
+            }
+        }
+        return count;
+    }
+
+
+
+    
 }
+
