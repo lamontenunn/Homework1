@@ -13,7 +13,7 @@ public class AlphaBeta
     private final char PLAYER = '0';               //player
     private final int MIN = 0;                     //min level
     private final int MAX = 1;                     //max level
-    private final int DEPTH = 6;                   //depth limit
+    private final int MAX_DEPTH = 6;                   //depth limit
 
     //Board class (inner class)
     private class Board
@@ -59,8 +59,8 @@ public class AlphaBeta
 
 
             // Calculate and display scores after player move
-            int playerScore = evaluateScore(PLAYER);
-            int computerScore = evaluateScore(COMPUTER);
+            int playerScore = calculateScore(PLAYER);
+            int computerScore = calculateScore(COMPUTER);
             writer.println("Player Score: " + playerScore + ", Computer Score: " + computerScore);
             System.out.println("Player Score: " + playerScore + ", Computer Score: " + computerScore);
 
@@ -86,8 +86,8 @@ public class AlphaBeta
 
 
             // Calculate and display scores after computer move
-            playerScore = evaluateScore(PLAYER);
-            computerScore = evaluateScore(COMPUTER);
+            playerScore = calculateScore(PLAYER);
+            computerScore = calculateScore(COMPUTER);
             writer.println("Player Score: " + playerScore + ", Computer Score: " + computerScore);
             System.out.println("Player Score: " + playerScore + ", Computer Score: " + computerScore);
 
@@ -145,7 +145,7 @@ public class AlphaBeta
                                                    //find the child with
         for (int i = 0; i < children.size(); i++)  //largest minmax value
         {
-            int currentValue = minmax(children.get(i), MIN, DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE);
+            int currentValue = minmax(children.get(i), MIN, 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
             if (currentValue > maxValue)
             {
                 maxIndex = i;
@@ -177,8 +177,8 @@ public class AlphaBeta
     //Method computes minmax value of a board
     private int minmax(Board board, int level, int depth, int alpha, int beta)
     {
-        if (computerWin(board) || playerWin(board) || draw(board) || depth >= DEPTH)
-            return evaluateScore(PLAYER);                //if board is terminal or depth limit is reached
+        if (computerWin(board) || playerWin(board) || draw(board) || depth >= MAX_DEPTH)
+            return evaluate(board);                //if board is terminal or depth limit is reached
             
 
 
@@ -397,29 +397,17 @@ private void displayBoard(Board board)
 
 
     //Method evaluates a board
-    public int evaluateScore(char symbol) {
-        int p = 0; // 2 consecutive pieces
-        int q = 0; // 3 consecutive pieces
-        // Horizontal and vertical
-        for (int i = 0; i < size; i++) {
-            p += countConsecutive(i, -1, symbol, 2);
-            q += countConsecutive(i, -1, symbol, 3);
-            p += countConsecutive(-1, i, symbol, 2);
-            q += countConsecutive(-1, i, symbol, 3);
-        }
-        // Diagonal (left and right)
-        p += countDiagonalConsecutive(symbol, 2, true);
-        q += countDiagonalConsecutive(symbol, 3, true);
-        p += countDiagonalConsecutive(symbol, 2, false);
-        q += countDiagonalConsecutive(symbol, 3, false);
-
-        return 2 * p + 3 * q;
-    }
-
-                            //utility is difference between computer 
-                                                   //and player winnings if depth limit
-                                                   //is reached
-                                                   
+    private int evaluate(Board board)
+    {
+        if (computerWin(board))                    //utility is 4*size if computer wins
+            return 4*size;
+        else if (playerWin(board))                 //utility is -4*size if player wins
+            return -4*size;
+        else if (draw(board))                      //utility is 3*size if draw
+            return 3*size;
+        else                            
+            return count(board, COMPUTER) - count(board, PLAYER);
+    }                
 
                                                    
     //Method counts possible ways a symbol can win
@@ -486,6 +474,42 @@ private void displayBoard(Board board)
 
 
 
+
+
+    private int calculateScore(char symbol) {
+        int p = 0; // Number of two consecutive pieces
+        int q = 0; // Number of three consecutive pieces
+    
+        // Loop through each row and column
+        for (int i = 0; i < size; i++) {
+            p += countConsecutive(i, -1, symbol, 2); // Count two consecutive in row
+            p += countConsecutive(-1, i, symbol, 2); // Count two consecutive in column
+            q += countConsecutive(i, -1, symbol, 3); // Count three consecutive in row
+            q += countConsecutive(-1, i, symbol, 3); // Count three consecutive in column
+        }
+    
+        // Count diagonals for two and three consecutive pieces
+        p += countDiagonalConsecutive(symbol, 2, true); // Count two consecutive in left diagonal
+        p += countDiagonalConsecutive(symbol, 2, false); // Count two consecutive in right diagonal
+        q += countDiagonalConsecutive(symbol, 3, true); // Count three consecutive in left diagonal
+        q += countDiagonalConsecutive(symbol, 3, false); // Count three consecutive in right diagonal
+    
+        // Calculate the score based on 2p + 3q
+        return 2 * p + 3 * q;
+    }
+    
+
+
+
+
+
+
+
+
+
+
+
+
     private int countConsecutive(int row, int col, char symbol, int length) {
         int count = 0;
         int consecutive = 0;
@@ -496,7 +520,7 @@ private void displayBoard(Board board)
                     consecutive++;
                     if (consecutive == length) {
                         count++;
-                        if (length == 3) { // Avoid double-counting for sequences of 3
+                        if (length == 3) { 
                             j++;
                         }
                     }
@@ -514,7 +538,7 @@ private void displayBoard(Board board)
                     consecutive++;
                     if (consecutive == length) {
                         count++;
-                        if (length == 3) { // Avoid double-counting for sequences of 3
+                        if (length == 4) { 
                             i++;
                         }
                     }
