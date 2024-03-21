@@ -1,0 +1,96 @@
+
+Player move: 
+0| | | 
+-----------
+ | | | 
+-----------
+ | | | 
+-----------
+ | | | 
+Player Score: 0, Computer Score: 0
+Computer move: 0 1
+0|X| | 
+-----------
+ | | | 
+-----------
+ | | | 
+-----------
+ | | | 
+Player Score: 0, Computer Score: 0
+
+Player move: 
+0|X|0| 
+-----------
+ | | | 
+-----------
+ | | | 
+-----------
+ | | | 
+Player Score: 0, Computer Score: 0
+Computer move: 0 3
+0|X|0|X
+-----------
+ | | | 
+-----------
+ | | | 
+-----------
+ | | | 
+Player Score: 0, Computer Score: 0
+
+Player move: 
+0|X|0|X
+-----------
+0| | | 
+-----------
+ | | | 
+-----------
+ | | | 
+Player Score: 2, Computer Score: 0
+Computer move: 3 0
+0|X|0|X
+-----------
+0| | | 
+-----------
+ | | | 
+-----------
+X| | | 
+Player Score: 2, Computer Score: 0
+
+Player move: 
+0|X|0|X
+-----------
+0|0| | 
+-----------
+ | | | 
+-----------
+X| | | 
+Player Score: 8, Computer Score: 0
+Computer move: 1 2
+0|X|0|X
+-----------
+0|0|X| 
+-----------
+ | | | 
+-----------
+X| | | 
+Player Score: 8, Computer Score: 2
+
+Player move: 
+0|X|0|X
+-----------
+0|0|X|0
+-----------
+ | | | 
+-----------
+X| | | 
+Player Score: 8, Computer Score: 2
+Computer move: 2 1
+0|X|0|X
+-----------
+0|0|X|0
+-----------
+ |X| | 
+-----------
+X| | | 
+Player Score: 8, Computer Score: 5
+Computer wins

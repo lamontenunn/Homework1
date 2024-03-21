@@ -1,3 +1,38 @@
+/*
+ * Author: LaMonte Nunn
+ * Date: 15 FEB 2024
+ * 
+ * Overview:
+ * This program solves a sliding puzzle using the A* search algorithm. The puzzle consists of a board
+ * with nxn tiles, including numbers, red (R) tiles, and green (G) tiles. The goal is to sort the board in a
+ * specific order: numbers in ascending order, followed by all R tiles, and then all G tiles. Tiles can be
+ * swapped if they are neighbors (horizontally or vertically), but swaps are restricted based on tile type.
+ * 
+ * The program uses the A* algorithm with a heuristic based on taxi distances to find the
+ * shortest path to the goal state. It includes components for tracking the path cost, heuristic estimation,
+ * and total cost, as well as functionality for generating possible moves and evaluating board states.
+ * 
+ * Input:
+ * - Initial board state: An nxn matrix
+ * - Goal board state: Calculated by the program based on sorting criteria.
+ * 
+ * Output:
+ * - Sequence of moves leading to the goal state, displayed on the console and written to a specified output file.
+ * 
+ * Constraints:
+ * - Only neighboring tiles (horizontal or vertical) can be swapped.
+ * - Tiles of the same type (number-number, R-R, G-G) cannot be swapped among themselves.
+ * 
+ * Features:
+ * - A* search algorithm implementation.
+ * - Heuristic function based on taxi distances for estimating the cost to reach the goal state.
+ * - Open and closed lists for keeping track of explored and unexplored board states.
+ * 
+ */
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 
 //This program solves sliding puzzle using A* algorithm
@@ -25,26 +60,36 @@ public class SlidingAstar {
             this.parent = null; // no parent
         }
     }
+
     // variables of a Sliding aStar
     private Board initial; // initial board
     private Board goal; // goal board
     private int size; // board size
+    private PrintWriter writer;
 
     // Constructor of SlidingAstar class
-    public SlidingAstar(char[][] initial, char[][] goal, int size) {
+    public SlidingAstar(char[][] initial, char[][] goal, int size, String outputFileName) {
         this.size = size; // set size of board
         this.initial = new Board(initial, size); // create initial board
         this.goal = new Board(goal, size); // create goal board
+
+        try {
+            this.writer = new PrintWriter(new FileWriter(outputFileName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     // Method solves sliding puzzle
     public void solve() {
+
         LinkedList<Board> openList = new LinkedList<Board>(); // open list
         LinkedList<Board> closedList = new LinkedList<Board>();// closed list
 
         openList.addFirst(initial); // add initial board to open list
 
-        while (!openList.isEmpty())  {// while open list has more boards
+        while (!openList.isEmpty()) {// while open list has more boards
 
             int best = selectBest(openList); // select best board
 
@@ -53,13 +98,13 @@ public class SlidingAstar {
             closedList.addLast(board); // add board to closed list
 
             if (goal(board)) { // if board is goal
-            
+
                 displayPath(board); // display path to goal
                 return; // stop search
-            } 
-            
+            }
+
             else { // if board is not goal
-            
+
                 LinkedList<Board> children = generate(board);// create children
 
                 for (int i = 0; i < children.size(); i++) { // for each child
@@ -82,20 +127,19 @@ public class SlidingAstar {
         }
 
         System.out.println("no solution"); // no solution if there are no more board in open list
-    } 
-
+    }
 
     // Method creates children of a board
     private LinkedList<Board> generate(Board board) {
 
         // creates children linkedlist
         LinkedList<Board> children = new LinkedList<>();
-    
+
         // Iterate over the board to find all possible moves
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 // Check all four directions for possible swaps
-                char[] directions = {'N', 'S', 'E', 'W'};
+                char[] directions = { 'N', 'S', 'E', 'W' };
                 for (char d : directions) {
                     if (isValidSwap(board, d, i, j)) {
                         Board child = createChild(board, i, j, d);
@@ -106,50 +150,51 @@ public class SlidingAstar {
                 }
             }
         }
-    
+
         return children;
     }
-    
 
-    // 
     // given direction
     private Board createChild(Board board, int i, int j, char direction) {
         // First, make a deep copy of the board to create a new child
         Board child = copy(board);
-    
+
         // Determine the swap position based on the direction
         int swapI = i, swapJ = j;
         switch (direction) {
-            case 'N': swapI = i - 1; break; // Move up
-            case 'S': swapI = i + 1; break; // Move down
-            case 'E': swapJ = j + 1; break; // Move right
-            case 'W': swapJ = j - 1; break; // Move left
+            case 'N':
+                swapI = i - 1;
+                break; // Move up
+            case 'S':
+                swapI = i + 1;
+                break; // Move down
+            case 'E':
+                swapJ = j + 1;
+                break; // Move right
+            case 'W':
+                swapJ = j - 1;
+                break; // Move left
         }
-    
+
         // Perform the swap if the move is within bounds
         if (swapI >= 0 && swapI < size && swapJ >= 0 && swapJ < size) {
             char temp = child.array[i][j];
             child.array[i][j] = child.array[swapI][swapJ];
             child.array[swapI][swapJ] = temp;
-            
+
             // After the swap, update the gvalue and parent
             child.gvalue = board.gvalue + 1; // Increment the path cost by 1
             child.parent = board; // Set the current board as parent
-            
+
             // Recalculate the heuristic value for the child
             child.hvalue = heuristic_D(child); // Call your heuristic function
             // Update the fvalue (total cost)
             child.fvalue = child.gvalue + child.hvalue;
         }
-    
+
         return child;
     }
-    
 
-
-    //HEURISTIC MISMATCH GOES HERE
-
-    // Method computes heuristic value of board
     // Heuristic value is the sum of taxi distances of misplaced values
     private int heuristic_D(Board board) {
         // initial heuristic value
@@ -253,45 +298,76 @@ public class SlidingAstar {
             displayBoard(list.get(i));
     }
 
-    // Method displays board
+    // Method displays baord
     private void displayBoard(Board board) {
-        for (int i = 0; i < size; i++) // print each element of board
-        {
-            for (int j = 0; j < size; j++)
-                System.out.print(board.array[i][j] + " ");
-            System.out.println();
+        StringBuilder sb = new StringBuilder(); // Use StringBuilder to accumulate text
+        for (int i = 0; i < size; i++) {
+            if (i > 0) {
+                for (int j = 0; j < size; j++) {
+                    sb.append("--");
+                    if (j < size - 1) {
+                        sb.append("-");
+                    }
+                }
+                sb.append("\n");
+            }
+
+            for (int j = 0; j < size; j++) {
+                sb.append(board.array[i][j]);
+                if (j < size - 1) {
+                    sb.append("|");
+                }
+            }
+            sb.append("\n");
         }
-        System.out.println();
+        sb.append("\n");
+
+        // Print to console
+        System.out.print(sb.toString());
+        // Write to file
+        writer.print(sb.toString());
+        writer.flush(); // Ensure data is written
     }
 
     private boolean isValidSwap(Board board, char direction, int i, int j) {
         int ni = i, nj = j; // new indices after moving in the specified direction
-    
+
         // Update indices based on direction
         switch (direction) {
-            case 'N': ni = i - 1; break; // Move up
-            case 'S': ni = i + 1; break; // Move down
-            case 'E': nj = j + 1; break; // Move right
-            case 'W': nj = j - 1; break; // Move left
+            case 'N':
+                ni = i - 1;
+                break; // Move up
+            case 'S':
+                ni = i + 1;
+                break; // Move down
+            case 'E':
+                nj = j + 1;
+                break; // Move right
+            case 'W':
+                nj = j - 1;
+                break; // Move left
         }
-    
+
         // Check bounderies
-        if (ni < 0 || nj < 0 || ni >= size || nj >= size) return false;
-    
+        if (ni < 0 || nj < 0 || ni >= size || nj >= size)
+            return false;
+
         char current = board.array[i][j];
         char next = board.array[ni][nj];
-    
+
         // Check for valid swap
         // Swap between number and 'R' or 'G'
-        if (Character.isDigit(current) && (next == 'R' || next == 'G')) return true;
-        if (Character.isDigit(next) && (current == 'R' || current == 'G')) return true;
-    
+        if (Character.isDigit(current) && (next == 'R' || next == 'G'))
+            return true;
+        if (Character.isDigit(next) && (current == 'R' || current == 'G'))
+            return true;
+
         // Swap between 'R' and 'G'
-        if ((current == 'R' && next == 'G') || (current == 'G' && next == 'R')) return true;
-    
+        if ((current == 'R' && next == 'G') || (current == 'G' && next == 'R'))
+            return true;
+
         // If none of the valid return false
         return false;
     }
-    
-    
+
 }

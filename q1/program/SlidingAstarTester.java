@@ -8,8 +8,14 @@ public class SlidingAstarTester {
     public static int heuristicFun;
 
     public static void main(String[] args) {
+        Scanner console = new Scanner(System.in);
+        
+        // Ask for input file name
+        System.out.print("Enter input file: ");
+        String inputFileName = console.nextLine();
+        File file = new File(inputFileName);
+        
         try {
-            File file = new File("file2.txt");
             Scanner in = new Scanner(file);
             int size = in.nextInt();
 
@@ -39,14 +45,20 @@ public class SlidingAstarTester {
 
             SlidingAstar s = new SlidingAstar(initial, goal, size, evaluationFun, heuristicFun);
 
+            // Ask for output file name after reading the input file
+            System.out.print("Enter output file: ");
+            if (in.hasNextLine()) { // To consume any newline left in the buffer
+                in.nextLine();
+            }
+            String outputFile = console.nextLine(); // Use console to read output file name
 
-
-
-            s.solve("output2.txt");
+            s.solve(outputFile);
 
             in.close();
         } catch (FileNotFoundException e) {
             System.out.println("File not found.");
+        } finally {
+            console.close(); // Close the console scanner
         }
     }
 }

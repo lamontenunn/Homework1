@@ -1,6 +1,9 @@
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.LinkedList;
+
+
  
 //This program solves sliding puzzle using A* algorithm
 public class SlidingAstar

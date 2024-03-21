@@ -66,6 +66,6 @@
 1 5 2 
 6 3 7 
 
-Runtime: 119 ms
+Runtime: 131 ms
 Number of swaps: 1670
 Number of boards searched: 617

@@ -1,16 +1,21 @@
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.*;
 
 public class SlidingAstarTester {
     // main method for testing
     public static void main(String[] args) {
         try {
-            File file = new File("file4.txt");
+
+            Scanner name = new Scanner(System.in);
+            System.out.print("Enter input file name: ");
+            String fileName = name.nextLine();
+
+            System.out.print("Enter output file name: ");
+            String outputFileName = name.nextLine();
+
+            File file = new File(fileName);
             Scanner in = new Scanner(file);
             int size = in.nextInt();
-
-            System.out.println("Puzzle size: " + size);
 
             char[][] initial = new char[size][size];
             char[][] goal = new char[size][size];
@@ -66,15 +71,17 @@ public class SlidingAstarTester {
                 }
             }
 
-
             // create slidingAstar object given initial board, goal board and size
-            SlidingAstar s = new SlidingAstar(initial, goal, size);
+            SlidingAstar s = new SlidingAstar(initial, goal, size, outputFileName);
             s.solve();
 
+            name.close();
+            in.close();
 
-        // catch exception 
+            // catch exception
         } catch (FileNotFoundException e) {
             System.out.println("File not found.");
         }
+
     }
 }
